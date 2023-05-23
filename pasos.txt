@@ -1,0 +1,54 @@
+// vamos a relaizar un servidor api de backend que permita hacer un crud 
+
+lo primero que se hace en el proyecto es inicializarlo con npm -y init 
+
+luego en el package.json vamos a utilizar ecmascript modules y el entry point  y hay le vaos a decir que en la carpeta src esta el archivo principal app.js
+
+lo mas recomendable es encarar el proyecto de sta manera los script start es para cuando ya esta en produccion y el scrpt de en desarrollo
+
+{
+  "name": "practicaintegradora",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node",
+    "dev": "nodemon"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+
+bueno luego  creamos la carpeta src y instalamos express para  que se genera la carpeta nodemodules y es muy aconsajable usar la carpeta gitignore para no tener roblemas en el repo
+
+luego dentro de la carpeta src se crean las carpetas models,public,routes,views hace parte de la arquitectura del servidor
+
+cremos el archivo princpal app.js
+
+ahora creamos el primer router o la ruta para pokemones en este caso es una entidad y sera tratada asi en base de datos 
+
+pokemon.routes.js en la carpeta routes
+
+luego de hacer la configuracion necesaria vamos a instalar express-handlebars para las vistas y se configura en el app.js primero se importa 
+
+leugo dentro de la carpeta src / views se configura handlebars se crea layout y main .handlebars
+
+y luego creamos al nivel de views el list.handlebars
+donde vamos a listar los pokemones
+
+luego en este caso vamos a guardar un imagen en public / assets para ponerla de logo para esto hay que setearlo en app.js  entonces es app.use(express.static('./src/public'))
+
+y luego en el main.handlebars se usamos la iamgen con una etiqueta img src
+
+y leugo de esto creamo otra vista pa poder visualizar el logo al buscar por nombre el pikachu que se llame one.hanldebasr todo esto esta jarcodeado por eso vamos a empezar a usar la base de datos de mongo con mongoose
+
+moongose es para el acceso a la base de datos en otra terminal hacemo npm install moongose y buscamos mongo atla la url connection 
+
+en mongo atlas nos loguemaos y buscamos la url connection 
+
+luego de esto nos vamos al models donde va a ir el esquema del documento que se va a grabar 
+
+lueg en app se hace la conexion con el modelo 
+
