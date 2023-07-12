@@ -52,3 +52,20 @@ luego de esto nos vamos al models donde va a ir el esquema del documento que se 
 
 lueg en app se hace la conexion con el modelo 
 
+luego de haber conectado a la perfeccion la pp con mong db 
+
+empezamos a hacer el crud creamos una ruta create en pokemon.routes.js
+luego creamos el formulario en views / layouts / main.handlebars
+
+despues de hacer la conexion y la consulta a la base de datos entonces ahora se trabajara sobre el metodo post 
+
+en primer lugar crearemos la ruta para la  vista del fromulario con el que crearemos nuestro pokemon 
+despues de realizar  la ruta create y post se configura en el app.js para recibir datos de un formularo estas dos lineas :
+app.use(express.json()); //para poder recibir datos en formato json 
+app.use(express.urlencoded({ extended: true }));// esto es para que se etiendan los datos que se reciben desde el formulario los json
+
+ahora con esas dos linesa recibimos desde el formulario por body 
+
+
+
+

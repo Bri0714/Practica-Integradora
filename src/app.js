@@ -1,42 +1,139 @@
-import express from "express";
-import pokemonRouter from './routes/pokemon.routes.js'
-import handlebars from 'express-handlebars'
-import mongoose from "mongoose";
+const express = require('express')
+const app = express()
+const PORT = 8080 || process.env.PORT 
 
-const uri = 'mongodb+srv://bamezquitap:parada2021@cluster0.u7xao80.mongodb.net/pokedex'
+//Mongo
+const DataBase= require('./dao/mongoDao/db')
+const Product= require('./dao/models/products.model')
+const Chat= require('./dao/models/chat.model')
 
-const app = express();
+// Public Folder
+app.use(express.static(__dirname + '/public'))
+app.use(express.urlencoded({extended:true}))
 
-//configuracion de handlebars
+// Routes
+const routesProducts = require('./routes/products/products.route')
+app.use('/products', routesProducts)
+const routesCart = require('./routes/cart/cart.route') 
+app.use('/cart', routesCart)
+const routesRealTime = require('./routes/realTimeProduct/realTimeProduct.route')
+app.use('/realTimeProducts', routesRealTime)
+const routesChat = require('./routes/chat/chat.route')
+app.use('/chat', routesChat)
 
+// Handlebars
+const handlebars = require('express-handlebars')
 app.engine('handlebars', handlebars.engine())
-app.set('views', './src/views')
 app.set('view engine', 'handlebars')
+app.set('views', __dirname + '/views/')
 
-//ruta para ver el logo
-app.use(express.static('./src/public'))
+// Sockets set
+const {Server} = require('socket.io')
+const http = require('http')
+const server = http.createServer(app)
+const io = new Server(server)
 
-//ruta para ver los pokemones
-app.use('/pokemon', pokemonRouter)
+const messages = [] 
+io.on('connection', (socket)=>{
+    console.log('New User connected')
+    socket.emit('wellcome','Wellcome new User') 
 
-app.get("/", (req, res) => {
-    res.send("Hello World");
-});
+    // Comunicacion con realTimeProduct.js
+    socket.on('addProduct' ,(data)=>{
+        let product= new Product(data)
+        product.save()
+        .then(pr=>{
 
-mongoose.set('strictQuery', false)
-try {
-    await mongoose.connect(uri)
-    console.log('Conectado a la base de datos')
-    app.listen(8080, () => {
-        console.log("Server is running on port 8080");
-    });
-} catch (e) {
-    console.log('Error al conectar a la base de datos')
-}
+            Product.find({}).lean()
+            .then(pr=>{
+                io.sockets.emit('newData', pr)
+            })
+            .catch(err=>{
+                res.status(500).send(
+                    console.log('Error loading product')
+                )
+            })
+        })
+        .catch(err=>{
+            res.status(500).send(
+                console.log('Error loading product')
+            )
+        })   
 
-//app.listen(8080, () => {
-//    console.log("Server is running on port 8080");
-//});
+    })
+    socket.on('delProduct',(data)=>{
+        // let {id} =data
+        // let pId = parseInt(id)
+        // let product = new ProductManager("./src/routes/products/Products.json");
+        // product.deleteProduct(pId)
+        // let newData = product.getProducts()
+        let {id} =data
+        console.log(id)
+        Product.deleteOne({_id:id})
+        .then(pr =>{ 
+            Product.find({}).lean()
+            .then(pr=>{
+                io.sockets.emit('newData', pr)
+            })
+            .catch(err=>{
+                res.status(500).send(
+                    console.log('Error loading product')
+                )
+            })
+        })
+        .catch(err=>{
+            res.status(500).send(
+                console.log('Error Delete product')
+            )
+        })
+        
+    })
 
+    // Chat sockets
+    socket.on('new-message', (data)=>{
+        
+            Chat.findOne({user:data.user }).exec()
+            .then(pr=>{
 
+                if(pr){
+                    Chat.updateOne({_id:pr._id},data)
+                    .then(pr=>{
+                        messages.push(data)
+                        io.sockets.emit('messages-all', messages)
+                    })
+                    .catch(err=>{
+                        console.log('Error send message')   
+                    })
+                }
+                else{
+                    let chat= new Chat(data)
+                    chat.save()
+                    .then(pr=>{
+                    messages.push(data)
+                    io.sockets.emit('messages-all', messages)
+                    })
+                    .catch(err=>{
+                        console.log('Error send message')   
+                    })
+                }
+            })
+    })
+
+})
+
+app.get('/', (req,res)=> {
+    const data={
+        title:'ecommerce backend',
+        message:'Ecommerce backend  Index',
+        style:'style.css'
+    }
+    res.render('index', data)
+})
+
+server.listen(PORT, ()=>{
+    console.log('Server is runing on port 8080')
+    url= 'mongodb://localhost:27017'
+    const database= new DataBase(url)
+    database.connect()
+})
 
